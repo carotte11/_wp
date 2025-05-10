@@ -8,7 +8,7 @@
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <meta name="description" content="個人資料表" />
-        <title>表單</title>
+        <title>註冊表單</title>
         <style>
             body{
                 font-family: sans-serif;
@@ -33,7 +33,7 @@
     
     <body>
         <form action="#" method="post">
-            <h1>個人資料表</h1>
+            <h1>註冊表單</h1>
             <label for="name">姓名:</label><br/>
             <input type="text" id="name" name="name" placeholder="請輸入姓名" required><br/><br/>
             <label for="idnumber">身分證字號:</label><br/>
@@ -47,11 +47,7 @@
             <input type="radio" id="Unknow" name="gender" value="不願透露">
             <label for="Unknow">不願透露</label><br/><br/>
 
-            <label for="phonenumber">手機號碼:</label><br>
-            <input type="text" id="phonenumber" name="phonenumber" placeholder="請輸入手機號碼" required><br><br/>
-
             <label>生日：</label><br>
-
             <select name="year">
                 <option value="">請選擇年份</option>
                 <option value="2000">2000</option>
@@ -116,6 +112,13 @@
             </select>
             <br/>
             <br/>
+
+            <label for="phonenumber">手機號碼:</label><br>
+            <input type="text" id="phonenumber" name="phonenumber" placeholder="請輸入手機號碼" required><br><br/>
+
+            <label for="email">email帳號:</label><br>
+            <input type="text" id="email" name="email" placeholder="請輸入email帳號" required><br><br/>
+
             <button type="submit">送出</button>
         </form>
     </body>
