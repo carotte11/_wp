@@ -1,0 +1,260 @@
+<!--完全自創 因為喜歡Minecrift裡的東西所以決定販賣玩家們常吃的東西-->
+<!--商店功能有參考Chatgpt-->
+<!--點擊商品圖片就有簡短的商品介紹-->
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <title>FOOD SHOP</title>
+  <style>
+    body { font-family: sans-serif; margin: 20px; background-color: #f9f9f9; }
+    h1 { text-align: center; }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); 
+      gap: 20px;
+    }
+    .product {
+      border: 1px solid #ccc;
+      padding: 10px;
+      text-align: center;
+      background: #fff;
+      border-radius: 8px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    .product img {
+      width: 100px;
+      height: 100px;
+      object-fit: cover;
+      margin-bottom: 10px;
+    }
+    .qty-btn {
+      margin: 0 5px;
+      cursor: pointer;
+    }
+    .cart-icon {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      cursor: pointer;
+      font-size: 24px;
+      background: #fff;
+      border: 1px solid #000;
+      padding: 5px 10px;
+      border-radius: 5px;
+    }
+    .cart-popup {
+      display: none;
+      position: fixed;
+      top: 60px;
+      right: 20px;
+      background: #fff;
+      border: 1px solid #000;
+      padding: 15px;
+      width: 300px;
+      max-height: 400px;
+      overflow-y: auto;
+    }
+    .modal {
+  display: none; 
+  position: fixed;
+  z-index: 999;
+  left: 0; top: 0;
+  width: 100%; height: 100%;
+  background-color: rgba(0,0,0,0.5);
+  justify-content: center;
+  align-items: center;
+}
+.modal-content {
+  background: #fff;
+  padding: 20px;
+  border-radius: 8px;
+  max-width: 400px;
+  text-align: center;
+  position: relative;
+}
+.modal img {
+  width: 100%;
+  height: auto;
+  margin-bottom: 10px;
+}
+.close-btn {
+  position: absolute;
+  top: 10px; right: 10px;
+  cursor: pointer;
+  font-size: 18px;
+}
+  </style>
+</head>
+<body>
+
+<h1>FOOD SHOP</h1>
+
+<div class="grid" id="products"></div>
+
+<div class="cart-icon" onclick="toggleCart()">🛒 CART (<span id="cartCount">0</span>) </div>
+
+<div class="cart-popup" id="cartPopup">
+  <h3>SHOPPING BAG</h3>
+  <div id="cartItems"></div>
+  <hr>
+  <div><strong>SUBTOTAL：</strong><span id="totalPrice">0</span> coins</div>
+  <button onclick="clearCart()">ClearCart</button>
+  <button onclick="openCheckout()">Checkout</button>
+
+</div>
+
+<div class="modal" id="productModal" onclick="closeModal(event)">
+  <div class="modal-content" id="modalContent">
+    <span class="close-btn" onclick="closeModal(event)">✖</span>
+  </div>
+</div>
+
+<div class="modal" id="checkoutModal" onclick="closeCheckout(event)">
+  <div class="modal-content" onclick="event.stopPropagation();">
+    <span class="close-btn" onclick="closeCheckout(event)">✖</span>
+    <h3>Select Payment Method</h3>
+    <form id="paymentForm">
+      <label>
+        <input type="radio" name="payment" value="Credit Card" checked> Credit Card
+      </label><br>
+      <label>
+        <input type="radio" name="payment" value="LINE Pay"> LINE Pay
+      </label><br>
+      <label>
+        <input type="radio" name="payment" value="Cash on Delivery"> Cash on Delivery
+      </label><br><br>
+      <button type="button" onclick="submitPayment()">Confirm Payment</button>
+    </form>
+  </div>
+</div>
+
+
+<script>
+  const products = [
+    { id: 1, name: 'Cake', price: 100, qty: 0, image: 'images/CakeItemNew.webp', description: 'Sweet and delicious cake, suitable for various festivals and afternoon tea.' },
+  { id: 2, name: 'Bread', price: 40, qty: 0, image: 'images/BreadNew.webp', description: 'The bread made by the villagers is absolutely fresh.' },
+  { id: 3, name: 'Pumpkin Pie', price: 120, qty: 0, image: 'images/PumpkinPieNew.webp', description: 'Made from 100% pumpkin, it is fragrant, smooth, sweet but not greasy.'},
+  { id: 4, name: 'Cookie', price: 50, qty: 0, image: 'images/CookieNew.webp', description: 'Handmade cookies, perfect with coffee or tea.'},
+  { id: 5, name: 'Carrot', price: 20, qty: 0, image: 'images/Carrot_Updated.webp', description: 'Small farmers grow their own carrots, and they are delivered directly from the farm, so they are absolutely fresh' },
+  { id: 6, name: 'Potato', price: 25, qty: 0, image: 'images/Potato_TextureUpdate.webp', description: 'Soft potatoes, suitable for frying, boiling, stir-frying, and deep-frying.'},
+  { id: 7, name: 'Mushroom Soup', price: 80, qty: 0, image: 'images/MushroomStewNew.webp', description: 'A unique mushroom soup made from a mixture of two types of mushrooms.'},
+  { id: 8, name: 'Apple', price: 30, qty: 0, image: 'images/Apple_1.14.webp', description: 'Sweet and juicy apples provide the nutrients you need for the day.'},
+  { id: 9, name: 'Water Melon', price: 50, qty: 0, image: 'images/MelonSliceNew.webp', description: 'Watermelon is a popular fruit in summer because it is sweet and refreshing.'},
+  { id: 10, name: 'Beef', price: 150, qty: 0, image: 'images/RawBeefNew.webp', description: 'The top-quality beef is tender and juicy, suitable for a variety of dishes.'},
+  { id: 11, name: 'Fish', price: 130, qty: 0, image: 'images/RawFish.webp', description: 'Freshly caught cod, rich in protein and Omega-3.'},
+  { id: 12, name: 'Egg', price: 10, qty: 0, image: 'images/EggNew.webp', description: 'Organic eggs are indispensable in our lives.'}
+  ];
+
+  function renderProducts() {
+    const container = document.getElementById('products');
+    container.innerHTML = '';
+    products.forEach(p => {
+      container.innerHTML += `
+        <div class="product" onclick="showModal(${p.id})">
+          <img src="${p.image}" alt="${p.name}" title="${p.name}">
+          <div><strong>${p.name}</strong></div>
+          <div>${p.price} coins</div>
+          <div>
+            <button class="qty-btn" onclick="event.stopPropagation(); changeQty(${p.id}, -1)">－</button>
+            <span id="qty-${p.id}">${p.qty}</span>
+            <button class="qty-btn" onclick="event.stopPropagation(); changeQty(${p.id}, 1)">＋</button>
+          </div>
+        </div>
+      `;
+    });
+  }
+
+  function changeQty(id, delta) {
+    const product = products.find(p => p.id === id);
+    product.qty = Math.max(0, product.qty + delta);
+    document.getElementById(`qty-${id}`).textContent = product.qty;
+    renderCart();
+  }
+
+  function renderCart() {
+  const cartItems = document.getElementById('cartItems');
+  const totalPrice = document.getElementById('totalPrice');
+  const cartCount = document.getElementById('cartCount');
+
+  cartItems.innerHTML = '';
+  let total = 0;
+  let itemCount = 0;
+  const cartProducts = products.filter(p => p.qty > 0);
+
+  if (cartProducts.length === 0) {
+    cartItems.innerHTML = '<p>Your bag is empty.</p>';
+  } else {
+    cartProducts.forEach(p => {
+      cartItems.innerHTML += `<div>${p.name} x ${p.qty} = ${p.price * p.qty} 元</div>`;
+      total += p.price * p.qty;
+      itemCount += p.qty;
+    });
+  }
+
+  totalPrice.textContent = total;
+  cartCount.textContent = itemCount;
+}
+
+
+  function toggleCart() {
+    const cart = document.getElementById('cartPopup');
+    cart.style.display = cart.style.display === 'block' ? 'none' : 'block';
+  }
+
+  function clearCart() {
+  products.forEach(p => {
+    p.qty = 0;
+  });
+  renderProducts();
+  renderCart();
+}
+
+function showModal(id) {
+  const product = products.find(p => p.id === id);
+  const modal = document.getElementById('productModal');
+  const modalContent = document.getElementById('modalContent');
+  modalContent.innerHTML = `
+    <span class="close-btn" onclick="closeModal(event)">✖</span>
+    <img src="${product.image}" alt="${product.name}">
+    <h2>${product.name}</h2>
+    <p>Price：${product.price} coins</p>
+    <p>${product.description}</p>
+  `;
+  modal.style.display = 'flex';
+}
+
+function closeModal(event) {
+  event.stopPropagation();
+  const modal = document.getElementById('productModal');
+  modal.style.display = 'none';
+}
+function openCheckout() {
+  const cartProducts = products.filter(p => p.qty > 0);
+  if (cartProducts.length === 0) {
+    alert("Your bag is empty. Please add some items before checkout.");
+    return;
+  }
+  const checkoutModal = document.getElementById('checkoutModal');
+  checkoutModal.style.display = 'flex';
+}
+
+function closeCheckout(event) {
+  event.stopPropagation();
+  const checkoutModal = document.getElementById('checkoutModal');
+  checkoutModal.style.display = 'none';
+}
+
+function submitPayment() {
+  const paymentForm = document.getElementById('paymentForm');
+  const selectedPayment = paymentForm.payment.value;
+  alert(`Payment successful with ${selectedPayment}!`);
+  closeCheckout(new Event('click'));
+  clearCart();
+}
+
+  renderProducts();
+</script>
+
+</body>
+</html>
